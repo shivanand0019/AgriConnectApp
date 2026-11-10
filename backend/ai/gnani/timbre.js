@@ -127,13 +127,17 @@ function resolveVoice(requestedVoice, language = 'kn-IN', config) {
  * @param {object} options - Audio options (speed, container, sampleRate)
  * @returns {Promise<object>} - { audioBase64, mimeType, format, voice, language, mode, provider }
  */
+// Circuit breaker to avoid waiting on timeout when remote Timbre API is unreachable
+let lastTimbreFailureTime = 0;
+const TIMBRE_COOLDOWN_MS = 60000; // 1 minute cooldown before retrying live remote endpoint
+
 const synthesizeSpeech = async (text, language = 'kn-IN', voice = null, options = {}) => {
   const config = getGnaniConfig();
   const selectedLang = language || 'kn-IN';
   const resolvedVoice = resolveVoice(voice, selectedLang, config);
 
-  // If live mode is not configured, run in clearly identified DEMO mode
-  if (config.modes.timbre === 'DEMO') {
+  // If live mode is not configured or in circuit-breaker cooldown, return synthetic audio immediately
+  if (config.modes.timbre === 'DEMO' || (Date.now() - lastTimbreFailureTime < TIMBRE_COOLDOWN_MS)) {
     return generateDemoTimbreAudio(text, selectedLang, resolvedVoice, options);
   }
 
@@ -168,7 +172,7 @@ const synthesizeSpeech = async (text, language = 'kn-IN', voice = null, options 
         'X-API-Key-ID': config.timbre.apiKey,
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(25000), // 25s timeout
+      signal: AbortSignal.timeout(5000), // 5s timeout for fast fallback
     });
 
     if (!response.ok) {
@@ -214,6 +218,7 @@ const synthesizeSpeech = async (text, language = 'kn-IN', voice = null, options 
       byteSize: Buffer.from(audioBase64, 'base64').length,
     };
   } catch (error) {
+    lastTimbreFailureTime = Date.now();
     console.warn('[Gnani Timbre TTS Warning]: Remote API failed, using synthetic audio fallback:', error.message);
     const fallback = generateDemoTimbreAudio(text, selectedLang, resolvedVoice, options);
     fallback.warning = `Live Timbre API failed (${error.message}). Demo audio fallback engaged.`;

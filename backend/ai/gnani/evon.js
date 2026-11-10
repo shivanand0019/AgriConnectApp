@@ -654,11 +654,11 @@ const reasonWithEvon = async (prompt, history = [], context = {}, retrievedData 
       const systemPrompt = BUILD_SYSTEM_PROMPT(role, user, language);
 
       // Model resolution with typo correction and fallback list
-      let rawModel = (config.gemini?.model || process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite').trim().toLowerCase();
-      if (rawModel.includes('3.1') || rawModel === 'gemini-3.1-flash-lite') {
-        rawModel = 'gemini-3.5-flash-lite';
+      let rawModel = (config.gemini?.model || process.env.GEMINI_MODEL || 'gemini-2.5-flash').trim().toLowerCase();
+      if (rawModel.includes('3.1') || rawModel === 'gemini-3.1-flash-lite' || rawModel.includes('3.8')) {
+        rawModel = 'gemini-2.5-flash';
       }
-      const candidateModels = Array.from(new Set([rawModel, 'gemini-3.5-flash-lite', 'gemini-2.5-flash', 'gemini-3.8-flash']));
+      const candidateModels = Array.from(new Set([rawModel, 'gemini-2.5-flash', 'gemini-3.5-flash-lite']));
 
       // Format conversation history for Gemini
       const contents = [];
@@ -691,7 +691,7 @@ const reasonWithEvon = async (prompt, history = [], context = {}, retrievedData 
                 temperature: 0.2,
               },
             }),
-            signal: AbortSignal.timeout(20000),
+            signal: AbortSignal.timeout(35000),
           });
 
           if (response.ok) {
@@ -719,7 +719,7 @@ const reasonWithEvon = async (prompt, history = [], context = {}, retrievedData 
             // If rate limited or invalid model format, try next candidate model
           }
         } catch (modelErr) {
-          console.warn(`[Gemini AI Agent]: Model ${geminiModel} execution error:`, modelErr.message);
+          console.warn(`[Gemini AI Agent]: Model ${geminiModel} execution error:`, modelErr.message, modelErr.cause?.code || modelErr.cause?.message || '');
         }
       }
     } catch (geminiErr) {

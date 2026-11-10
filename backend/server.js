@@ -1,3 +1,8 @@
+// Ensure SSL certificates (e.g. Avast / local antivirus proxy inspection) are trusted in development
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 const app = require('./app');
 const connectDB = require('./config/database');
 const { verifySmtpConnection } = require('./utils/emailService');

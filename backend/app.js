@@ -1,3 +1,8 @@
+// Ensure SSL certificates (e.g. Avast / local antivirus proxy inspection) are trusted in development
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
