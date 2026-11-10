@@ -1,0 +1,47 @@
+# Environment variables, credentials and secrets
+.env
+.env.*
+*.env
+**/*.env
+config.env
+**/config.env
+backend/config/config.env
+!*.env.example
+!**/.env.example
+
+# Credentials and Keys
+*.key
+*.pem
+!backend/certs/avast-root-ca.pem
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build files
+dist/
+**/dist/
+build/
+**/build/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Recorder temporary caches and intermediate video files
+recorder/audio/
+recorder/video/
+recorder/frames/
+recorder/temp_*
+recorder/browser_profile_*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
